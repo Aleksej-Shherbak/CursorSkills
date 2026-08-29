@@ -1,8 +1,10 @@
 # CursorSkills
 
-Cursor Agent Skill for building .NET applications on **Clean Architecture** — one skill, one framework guide. Install once and stop re-explaining stack and conventions in every new project.
+Cursor Agent Skills for .NET development — architecture guide and verification pipeline. Install once and stop re-explaining stack, conventions, and test workflows in every new project.
 
-## Skill: dotnet-clean-architecture
+## Skills
+
+### dotnet-clean-architecture
 
 **[skills/dotnet-clean-architecture/SKILL.md](skills/dotnet-clean-architecture/SKILL.md)** — complete instruction set for how we build .NET backends:
 
@@ -22,7 +24,20 @@ Cursor Agent Skill for building .NET applications on **Clean Architecture** — 
 | Program.cs, per-use-case DI | `reference/program-and-di.md` |
 | End-to-end scenarios | `examples.md` |
 
-Dapper, Result, Docker, versioning and the rest are **sections inside this one skill**, not separate skills.
+### dotnet-tester
+
+**[skills/dotnet-tester/SKILL.md](skills/dotnet-tester/SKILL.md)** — verification agent for .NET solutions:
+
+| Phase | What it does |
+|-------|--------------|
+| Build | `dotnet restore` + `dotnet build`, fix report on errors |
+| Unit tests | `dotnet test`, failure analysis |
+| Docker | `docker compose up`, health + log report |
+| OpenAPI | Fetch spec, test plan per Web API |
+| Curl smoke | Hit main endpoints, create `ai-e2e-tests/` scenarios |
+| ai-e2e-tests | Execute saved scenarios, update results |
+
+Discovers **all Web API projects** in the solution. Scenarios stored in `ai-e2e-tests/{ApiProjectName}/` at solution root.
 
 ## Installation
 
@@ -44,7 +59,23 @@ cd CursorSkills
 ./scripts/install.sh
 ```
 
-Restart Cursor after installation.
+Restart Cursor after installation or upgrade.
+
+The install script compares `version` in each skill's `SKILL.md`:
+
+| Installed | Source | Action |
+|-----------|--------|--------|
+| missing | any | install |
+| no version | any | remove + reinstall |
+| 1.0.0 | 1.1.0 | remove + reinstall |
+| 1.1.0 | 1.0.0 | skip (no downgrade) |
+| 1.0.0 | 1.0.0 | skip |
+
+Check installed version:
+
+```powershell
+Select-String -Path "$env:USERPROFILE\.cursor\skills\dotnet-tester\SKILL.md" -Pattern '^version:'
+```
 
 Validate after changes:
 
@@ -58,22 +89,30 @@ For team sharing inside a specific repository:
 
 ```powershell
 git submodule add https://github.com/<your-org>/CursorSkills.git .cursor/skills-shared
-# Symlink skills/dotnet-clean-architecture → .cursor/skills/dotnet-clean-architecture
+# Symlink skills/* → .cursor/skills/
 ```
 
 ### C. Manual copy
 
 ```powershell
 Copy-Item -Recurse skills\dotnet-clean-architecture "$env:USERPROFILE\.cursor\skills\"
+Copy-Item -Recurse skills\dotnet-tester "$env:USERPROFILE\.cursor\skills\"
 ```
 
 ## Using in Cursor Agent
 
-1. Skill installed under `~/.cursor/skills/dotnet-clean-architecture/` or `.cursor/skills/dotnet-clean-architecture/`.
-2. In Agent chat:
-   - `@dotnet-clean-architecture`
-   - or: "Use the dotnet-clean-architecture skill to scaffold this API"
-3. With `disable-model-invocation: true`, the skill loads when you name it explicitly.
+Both skills use `disable-model-invocation: true` — invoke explicitly via `/`:
+
+| Skill | Version | Invoke | When |
+|-------|---------|--------|------|
+| `dotnet-clean-architecture` | 1.0.0 | `/dotnet-clean-architecture` | Scaffolding, refactoring, reviewing .NET backends |
+| `dotnet-tester` | 1.0.0 | `/dotnet-tester` | Verify project works: build, tests, docker, API smoke |
+
+Example workflow:
+
+1. Build feature with `/dotnet-clean-architecture`
+2. Verify with `/dotnet-tester проверь solution end-to-end`
+3. After `git pull`, run `.\scripts\install.ps1` to upgrade skills when version bumped
 
 ## Repository Structure
 
@@ -83,13 +122,19 @@ CursorSkills/
 ├── LICENSE
 ├── CONTRIBUTING.md
 ├── skills/
-│   └── dotnet-clean-architecture/    ← the only skill
+│   ├── dotnet-clean-architecture/    ← architecture & conventions
+│   │   ├── SKILL.md
+│   │   ├── examples.md
+│   │   └── reference/
+│   └── dotnet-tester/                ← verification pipeline
 │       ├── SKILL.md
 │       ├── examples.md
 │       └── reference/
 └── scripts/
     ├── install.ps1
-    └── install.sh
+    ├── install.sh
+    ├── validate.ps1
+    └── validate.sh
 ```
 
 ## Attribution

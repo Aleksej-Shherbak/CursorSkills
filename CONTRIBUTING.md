@@ -1,23 +1,47 @@
 # Contributing to CursorSkills
 
-This repository contains **one skill** — `dotnet-clean-architecture` — a complete framework guide for .NET backends on Clean Architecture.
+This repository contains Cursor Agent Skills for .NET development:
 
-Most contributions extend that skill rather than adding new ones.
+| Skill | Purpose |
+|-------|---------|
+| `dotnet-clean-architecture` | How we build .NET backends (Clean Architecture, MediatR, Dapper, Docker) |
+| `dotnet-tester` | Verification pipeline (build, tests, docker, OpenAPI, ai-e2e-tests) |
 
-## Extending dotnet-clean-architecture
+## General Rules
 
-1. Keep `SKILL.md` under 500 lines — add detail to `reference/` or `examples.md`.
+1. Keep each `SKILL.md` under 500 lines — add detail to `reference/` or `examples.md`.
 2. Link reference files only one level deep from `SKILL.md`.
-3. Follow existing stack: Controllers, MediatR, Dapper, PostgreSQL, Docker.
-4. Do **not** place skills in `~/.cursor/skills-cursor/` — reserved for Cursor built-in skills.
+3. Set `disable-model-invocation: true` on all skills (manual invoke only).
+4. Set `version: x.y.z` in every `SKILL.md` frontmatter — bump on meaningful changes.
+5. Do **not** place skills in `~/.cursor/skills-cursor/` — reserved for Cursor built-in skills.
+
+## Versioning
+
+Each skill has a semver `version` field in `SKILL.md` frontmatter:
+
+```yaml
+---
+name: dotnet-tester
+version: 1.0.0
+description: ...
+---
+```
+
+Bump rules:
+
+- **patch** (1.0.0 → 1.0.1) — typo fixes, clarifications
+- **minor** (1.0.0 → 1.1.0) — new reference sections, extended pipeline steps
+- **major** (1.0.0 → 2.0.0) — breaking behavior or structure changes
+
+`install.ps1` / `install.sh` reinstall a skill when source version is **higher** than installed, or when installed copy has **no version**. Equal or older source versions are skipped.
 
 ## Layout
 
 ```
-skills/dotnet-clean-architecture/
+skills/<skill-name>/
 ├── SKILL.md              # core rules and checklist
 ├── examples.md           # end-to-end scenarios
-└── reference/            # detailed topics (Dapper, MediatR, Docker, …)
+└── reference/            # detailed topics
     └── *.md
 ```
 
@@ -35,23 +59,34 @@ macOS / Linux:
 ./scripts/validate.sh
 ```
 
-Checks: `SKILL.md` line count, `disable-model-invocation: true`, flat use-case folder paths (no `Commands/` subfolder), required reference files.
+Validates **all** skills in `skills/*/`: line count, frontmatter, links, skill-specific rules.
+
+## Extending dotnet-clean-architecture
+
+1. Follow existing stack: Controllers, MediatR, Dapper, PostgreSQL, Docker.
+2. Use flat use-case folders (`Orders/CreateOrder/`, not `Orders/Commands/CreateOrder/`).
+
+## Extending dotnet-tester
+
+1. Keep the 6-phase pipeline order in `SKILL.md`.
+2. Document new scenario fields in `reference/ai-e2e-tests-format.md`.
+3. Use `curl.exe` in all Windows examples.
+4. Tester skill **overrides** clean-arch "no restore/build" — only when `/dotnet-tester` is invoked.
+
+## Adding a New Skill
+
+1. Create `skills/<skill-name>/SKILL.md` with YAML frontmatter (`name`, `version`, `description`, `disable-model-invocation: true`).
+2. Add `examples.md` and `reference/` as needed.
+3. Update README to document the new skill.
+4. Extend `scripts/validate.ps1` if skill-specific checks are required.
+5. Install script picks it up automatically (scans `skills/`).
 
 ## Pull Request Checklist
 
 - [ ] `.\scripts\validate.ps1` passes
-- [ ] Changes fit inside `dotnet-clean-architecture` (new reference file or section, not a separate skill)
-- [ ] `SKILL.md` stays under 500 lines; large additions go to `reference/`
-- [ ] Examples in `examples.md` updated if behavior changes
-- [ ] Consistent with MediatR, Dapper, Controllers, PostgreSQL, Docker conventions
-
-## Adding a Separate Skill (rare)
-
-Only if the team explicitly decides to split a major topic into its own skill:
-
-1. Create `skills/<skill-name>/SKILL.md` with YAML frontmatter (`name`, `description`).
-2. Update README to document why it is separate from `dotnet-clean-architecture`.
-3. Install script picks it up automatically (scans `skills/`).
+- [ ] `SKILL.md` stays under 500 lines per skill
+- [ ] `examples.md` updated if behavior changes
+- [ ] README updated for new or changed skills
 
 ## Attribution
 

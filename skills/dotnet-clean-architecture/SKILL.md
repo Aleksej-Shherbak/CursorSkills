@@ -1,5 +1,6 @@
 ---
 name: dotnet-clean-architecture
+version: 1.0.0
 description: >
   Enforces Clean Architecture for .NET 10: 4-project layout (Domain, Application,
   Infrastructure, Api), dependency inversion, MediatR handlers with pipeline

@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Validates CursorSkills structure and dotnet-clean-architecture conventions.
+    Validates all CursorSkills in skills/*/.
 
 .EXAMPLE
     .\scripts\validate.ps1
@@ -11,8 +11,7 @@ param()
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-$SkillRoot = Join-Path $RepoRoot "skills\dotnet-clean-architecture"
-$SkillMd = Join-Path $SkillRoot "SKILL.md"
+$SkillsRoot = Join-Path $RepoRoot "skills"
 
 $errors = @()
 $warnings = @()
@@ -25,115 +24,186 @@ function Add-Warning([string]$Message) {
     $script:warnings += $Message
 }
 
-if (-not (Test-Path $SkillMd)) {
-    Write-Error "SKILL.md not found: $SkillMd"
-}
+function Validate-Skill {
+    param(
+        [string]$SkillRoot,
+        [string]$SkillName
+    )
 
-# 1. SKILL.md line count
-$skillLines = (Get-Content $SkillMd | Measure-Object -Line).Lines
-if ($skillLines -gt 500) {
-    Add-Error "SKILL.md has $skillLines lines (max 500). Move detail to reference/."
-}
-else {
-    Write-Host "OK: SKILL.md has $skillLines lines (max 500)"
-}
+    $SkillMd = Join-Path $SkillRoot "SKILL.md"
+    $relativeSkillRoot = $SkillRoot.Substring($RepoRoot.Length + 1)
 
-# 2. Frontmatter checks
-$skillContent = Get-Content $SkillMd -Raw
-if ($skillContent -notmatch '(?m)^disable-model-invocation:\s*true\s*$') {
-    Add-Error "SKILL.md must keep disable-model-invocation: true (manual invocation only)."
-}
-else {
-    Write-Host "OK: disable-model-invocation: true"
-}
+    Write-Host ""
+    Write-Host "=== Validating $SkillName ==="
 
-if ($skillContent -match 'behavior-rich') {
-    Add-Error "SKILL.md description contains typo 'behavior-rich'. Use 'pipeline behaviors, rich domain entities'."
-}
-else {
-    Write-Host "OK: description typo check passed"
-}
+    if (-not (Test-Path $SkillMd)) {
+        Add-Error "$relativeSkillRoot`: SKILL.md not found"
+        return
+    }
 
-# 3. Forbidden use-case path pattern (Commands/ subfolder)
-$markdownFiles = Get-ChildItem -Path $SkillRoot -Recurse -Filter "*.md" -File
-$forbiddenPattern = '(?i)(Application/|Orders/)Commands/'
+    # 1. SKILL.md line count
+    $skillLines = (Get-Content $SkillMd | Measure-Object -Line).Lines
+    if ($skillLines -gt 500) {
+        Add-Error "$relativeSkillRoot/SKILL.md has $skillLines lines (max 500). Move detail to reference/."
+    }
+    else {
+        Write-Host "OK: SKILL.md has $skillLines lines (max 500)"
+    }
 
-foreach ($file in $markdownFiles) {
-    $relativePath = $file.FullName.Substring($RepoRoot.Length + 1)
-    $lines = Get-Content $file.FullName
+    # 2. Frontmatter checks
+    $skillContent = Get-Content $SkillMd -Raw
 
-    for ($i = 0; $i -lt $lines.Count; $i++) {
-        $line = $lines[$i]
-        if ($line -match $forbiddenPattern) {
-            Add-Error "$relativePath`:$($i + 1) uses Commands/ subfolder. Use flat use-case folders (e.g. Orders/CreateOrder/)."
+    if ($skillContent -notmatch '(?m)^name:\s*\S') {
+        Add-Error "$relativeSkillRoot/SKILL.md`: missing 'name' in frontmatter"
+    }
+
+    if ($skillContent -notmatch '(?m)^description:\s*') {
+        Add-Error "$relativeSkillRoot/SKILL.md`: missing 'description' in frontmatter"
+    }
+
+    if ($skillContent -match '(?m)^version:\s*([0-9]+(?:\.[0-9]+)*)\s*$') {
+        Write-Host "OK: version $($Matches[1])"
+    }
+    else {
+        Add-Error "$relativeSkillRoot/SKILL.md`: missing 'version' in frontmatter (e.g. version: 1.0.0)"
+    }
+
+    if ($skillContent -notmatch '(?m)^disable-model-invocation:\s*true\s*$') {
+        Add-Error "$relativeSkillRoot/SKILL.md`: must keep disable-model-invocation: true (manual invocation only)."
+    }
+    else {
+        Write-Host "OK: disable-model-invocation: true"
+    }
+
+    # Skill-specific checks
+    if ($SkillName -eq "dotnet-clean-architecture") {
+        if ($skillContent -match 'behavior-rich') {
+            Add-Error "$relativeSkillRoot/SKILL.md`: description contains typo 'behavior-rich'."
         }
+        else {
+            Write-Host "OK: description typo check passed"
+        }
+
+        $forbiddenPattern = '(?i)(Application/|Orders/)Commands/'
+        $markdownFiles = Get-ChildItem -Path $SkillRoot -Recurse -Filter "*.md" -File
+
+        foreach ($file in $markdownFiles) {
+            $relativePath = $file.FullName.Substring($RepoRoot.Length + 1)
+            $lines = Get-Content $file.FullName
+
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+                if ($lines[$i] -match $forbiddenPattern) {
+                    Add-Error "$relativePath`:$($i + 1) uses Commands/ subfolder. Use flat use-case folders."
+                }
+            }
+        }
+
+        if ($errors.Count -eq 0) {
+            Write-Host "OK: no Commands/ subfolder paths in examples"
+        }
+
+        $requiredRefs = @(
+            "reference/team-conventions.md",
+            "reference/project-layout.md",
+            "reference/mediatr-setup.md",
+            "reference/domain-entities.md",
+            "reference/dapper-persistence.md",
+            "reference/controllers.md",
+            "reference/error-handling.md",
+            "reference/logging.md",
+            "reference/program-and-di.md",
+            "reference/migrations.md",
+            "reference/docker.md",
+            "reference/architecture-tests.md",
+            "reference/result-pattern.md",
+            "examples.md"
+        )
+
+        foreach ($ref in $requiredRefs) {
+            $fullPath = Join-Path $SkillRoot $ref
+            if (-not (Test-Path $fullPath)) {
+                Add-Error "Missing required file: $relativeSkillRoot/$ref"
+            }
+        }
+
+        if ($errors.Count -eq 0) {
+            Write-Host "OK: all required reference files exist"
+        }
+    }
+
+    if ($SkillName -eq "dotnet-tester") {
+        $requiredRefs = @(
+            "reference/webapi-discovery.md",
+            "reference/build-and-unit-tests.md",
+            "reference/docker-compose.md",
+            "reference/curl-prerequisites.md",
+            "reference/openapi-discovery.md",
+            "reference/ai-e2e-tests-format.md",
+            "reference/report-format.md",
+            "examples.md"
+        )
+
+        foreach ($ref in $requiredRefs) {
+            $fullPath = Join-Path $SkillRoot $ref
+            if (-not (Test-Path $fullPath)) {
+                Add-Error "Missing required file: $relativeSkillRoot/$ref"
+            }
+        }
+
+        if ($errors.Count -eq 0) {
+            Write-Host "OK: all required reference files exist"
+        }
+    }
+
+    # Markdown link targets (relative links only)
+    $markdownFiles = Get-ChildItem -Path $SkillRoot -Recurse -Filter "*.md" -File
+    $linkPattern = '\[[^\]]+\]\(([^)]+)\)'
+    $linkErrorsBefore = $errors.Count
+
+    foreach ($file in $markdownFiles) {
+        $relativePath = $file.FullName.Substring($RepoRoot.Length + 1)
+        $content = Get-Content $file.FullName -Raw
+        $matches = [regex]::Matches($content, $linkPattern)
+
+        foreach ($match in $matches) {
+            $target = $match.Groups[1].Value.Trim()
+
+            if ($target -match '^(https?://|mailto:|#)') {
+                continue
+            }
+
+            $targetPath = $target -replace '#.*$', ''
+            if ([string]::IsNullOrWhiteSpace($targetPath)) {
+                continue
+            }
+
+            $resolved = Join-Path $file.DirectoryName $targetPath
+            $resolved = [System.IO.Path]::GetFullPath($resolved)
+
+            if (-not (Test-Path $resolved)) {
+                Add-Error "$relativePath`: broken link '$target' -> '$resolved'"
+            }
+        }
+    }
+
+    if ($errors.Count -eq $linkErrorsBefore) {
+        Write-Host "OK: all relative markdown links resolve"
     }
 }
 
-if ($errors.Count -eq 0) {
-    Write-Host "OK: no Commands/ subfolder paths in examples"
+if (-not (Test-Path $SkillsRoot)) {
+    Write-Error "Skills directory not found: $SkillsRoot"
 }
 
-# 4. Markdown link targets (relative links only)
-$linkPattern = '\[[^\]]+\]\(([^)]+)\)'
+$skillDirs = Get-ChildItem -Path $SkillsRoot -Directory
 
-foreach ($file in $markdownFiles) {
-    $relativePath = $file.FullName.Substring($RepoRoot.Length + 1)
-    $content = Get-Content $file.FullName -Raw
-    $matches = [regex]::Matches($content, $linkPattern)
-
-    foreach ($match in $matches) {
-        $target = $match.Groups[1].Value.Trim()
-
-        if ($target -match '^(https?://|mailto:|#)') {
-            continue
-        }
-
-        $targetPath = $target -replace '#.*$', ''
-        if ([string]::IsNullOrWhiteSpace($targetPath)) {
-            continue
-        }
-
-        $resolved = Join-Path $file.DirectoryName $targetPath
-        $resolved = [System.IO.Path]::GetFullPath($resolved)
-
-        if (-not (Test-Path $resolved)) {
-            Add-Error "$relativePath`: broken link '$target' -> '$resolved'"
-        }
-    }
+if ($skillDirs.Count -eq 0) {
+    Write-Warning "No skills found in $SkillsRoot"
+    exit 0
 }
 
-if ($errors.Count -eq 0) {
-    Write-Host "OK: all relative markdown links resolve"
-}
-
-# 5. Required reference files linked from SKILL.md
-$requiredRefs = @(
-    "reference/team-conventions.md",
-    "reference/project-layout.md",
-    "reference/mediatr-setup.md",
-    "reference/domain-entities.md",
-    "reference/dapper-persistence.md",
-    "reference/controllers.md",
-    "reference/error-handling.md",
-    "reference/logging.md",
-    "reference/program-and-di.md",
-    "reference/migrations.md",
-    "reference/docker.md",
-    "reference/architecture-tests.md",
-    "reference/result-pattern.md",
-    "examples.md"
-)
-
-foreach ($ref in $requiredRefs) {
-    $fullPath = Join-Path $SkillRoot $ref
-    if (-not (Test-Path $fullPath)) {
-        Add-Error "Missing required file: skills/dotnet-clean-architecture/$ref"
-    }
-}
-
-if ($errors.Count -eq 0) {
-    Write-Host "OK: all required reference files exist"
+foreach ($skill in $skillDirs) {
+    Validate-Skill -SkillRoot $skill.FullName -SkillName $skill.Name
 }
 
 Write-Host ""
@@ -147,11 +217,11 @@ if ($warnings.Count -gt 0) {
 }
 
 if ($errors.Count -gt 0) {
-    Write-Host "Validation failed:"
-    foreach ($error in $errors) {
-        Write-Host "  ERROR: $error"
+    Write-Host "Validation failed ($($errors.Count) error(s)):"
+    foreach ($err in $errors) {
+        Write-Host "  ERROR: $err"
     }
     exit 1
 }
 
-Write-Host "Validation passed."
+Write-Host "Validation passed ($($skillDirs.Count) skill(s))."
