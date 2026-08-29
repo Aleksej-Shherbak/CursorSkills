@@ -149,11 +149,11 @@ See [program-and-di.md](program-and-di.md) for full DI and Program.cs rules.
 ## Command Pattern
 
 ```csharp
-// Application/Orders/Commands/CreateOrder/CreateOrderCommand.cs
+// Application/Orders/CreateOrder/CreateOrderCommand.cs
 using MediatR;
 using MyApp.Domain.Common;
 
-namespace MyApp.Application.Orders.Commands.CreateOrder;
+namespace MyApp.Application.Orders.CreateOrder;
 
 public sealed record CreateOrderCommand(
     string CustomerId,
@@ -166,13 +166,13 @@ public sealed record OrderItemDto(
 ```
 
 ```csharp
-// Application/Orders/Commands/CreateOrder/CreateOrderHandler.cs
+// Application/Orders/CreateOrder/CreateOrderHandler.cs
 using MediatR;
 using MyApp.Application.Common.Interfaces;
 using MyApp.Domain.Common;
 using MyApp.Domain.Entities;
 
-namespace MyApp.Application.Orders.Commands.CreateOrder;
+namespace MyApp.Application.Orders.CreateOrder;
 
 internal sealed class CreateOrderHandler(
     IOrderRepository orderRepository,
@@ -196,10 +196,10 @@ internal sealed class CreateOrderHandler(
 ```
 
 ```csharp
-// Application/Orders/Commands/CreateOrder/CreateOrderValidator.cs
+// Application/Orders/CreateOrder/CreateOrderValidator.cs
 using FluentValidation;
 
-namespace MyApp.Application.Orders.Commands.CreateOrder;
+namespace MyApp.Application.Orders.CreateOrder;
 
 public sealed class CreateOrderValidator : AbstractValidator<CreateOrderCommand>
 {

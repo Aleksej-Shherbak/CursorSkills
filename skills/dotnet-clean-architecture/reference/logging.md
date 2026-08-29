@@ -431,7 +431,7 @@ services.AddHttpClient("PaymentGateway", client =>
 For business/diagnostic messages in handlers, services, repositories:
 
 ```csharp
-// Application/Orders/Commands/CreateOrder/CreateOrderHandler.cs
+// Application/Orders/CreateOrder/CreateOrderHandler.cs
 internal sealed class CreateOrderHandler(
     IOrderRepository orderRepository,
     IStructuredLogWriter logWriter,

@@ -21,8 +21,25 @@ skills/dotnet-clean-architecture/
     └── *.md
 ```
 
+## Validation
+
+Before opening a PR, run:
+
+```powershell
+.\scripts\validate.ps1
+```
+
+macOS / Linux:
+
+```bash
+./scripts/validate.sh
+```
+
+Checks: `SKILL.md` line count, `disable-model-invocation: true`, flat use-case folder paths (no `Commands/` subfolder), required reference files.
+
 ## Pull Request Checklist
 
+- [ ] `.\scripts\validate.ps1` passes
 - [ ] Changes fit inside `dotnet-clean-architecture` (new reference file or section, not a separate skill)
 - [ ] `SKILL.md` stays under 500 lines; large additions go to `reference/`
 - [ ] Examples in `examples.md` updated if behavior changes

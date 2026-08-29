@@ -151,7 +151,7 @@ public async Task<Result<OrderDto>> Handle(GetOrderQuery request, CancellationTo
 ```
 
 ```csharp
-// Application/Orders/Commands/CancelOrder/CancelOrderHandler.cs
+// Application/Orders/CancelOrder/CancelOrderHandler.cs
 public async Task<Result> Handle(CancelOrderCommand request, CancellationToken ct)
 {
     var order = await orderRepository.GetByIdAsync(request.OrderId, ct);

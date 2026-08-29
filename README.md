@@ -46,6 +46,12 @@ cd CursorSkills
 
 Restart Cursor after installation.
 
+Validate after changes:
+
+```powershell
+.\scripts\validate.ps1
+```
+
 ### B. Project-level
 
 For team sharing inside a specific repository:

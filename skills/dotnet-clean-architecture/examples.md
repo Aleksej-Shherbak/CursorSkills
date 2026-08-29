@@ -101,7 +101,7 @@ internal sealed class CreateOrderHandler(IOrderRepository repo, TimeProvider clo
 **Agent steps:**
 
 1. **Domain** — `Cancel()` on `Order` returning `Result`.
-2. **Application** — `Orders/Commands/CancelOrder/`:
+2. **Application** — `Orders/CancelOrder/`:
    - `CancelOrderCommand(Guid OrderId) : IRequest<Result>`
    - `CancelOrderHandler` — load via repository, call `order.Cancel()`, update
    - `CancelOrderValidator`

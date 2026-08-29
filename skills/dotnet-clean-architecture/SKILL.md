@@ -3,7 +3,7 @@ name: dotnet-clean-architecture
 description: >
   Enforces Clean Architecture for .NET 10: 4-project layout (Domain, Application,
   Infrastructure, Api), dependency inversion, MediatR handlers with pipeline
-  behavior-rich domain entities with invariants and encapsulation, Dapper + PostgreSQL persistence, classic
+  behaviors, rich domain entities with invariants and encapsulation, Dapper + PostgreSQL persistence, classic
   ASP.NET Core controllers, multistage Dockerfile and docker-compose. Use when
   scaffolding, refactoring, or reviewing .NET backends, layered architecture,
   CQRS, MediatR, Dapper, PostgreSQL, Docker, or Clean Architecture.
