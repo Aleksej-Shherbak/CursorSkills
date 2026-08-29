@@ -1,3 +1,8 @@
+---
+description: Mandatory stack rules, DTO formatting, secrets, SolutionItems, agent constraints, and DO NOT DO anti-patterns. Read first on every Clean Architecture task.
+alwaysApply: true
+---
+
 # Team Conventions
 
 Apply these conventions in every .NET project unless the repository explicitly overrides them.
@@ -100,3 +105,24 @@ See [program-and-di.md](program-and-di.md).
 - Never raw `HttpClient` for external APIs.
 
 See [logging.md](logging.md).
+
+## DO NOT DO (Anti-Patterns)
+
+Hard rules — violating these breaks Clean Architecture. See code examples in [SKILL.md](../SKILL.md#anti-patterns-do-not-do).
+
+| ❌ Never | ✅ Instead |
+|----------|-----------|
+| Put repository **interfaces** in Infrastructure | Define `IOrderRepository` in **Application**; implement in Infrastructure |
+| Reference `Microsoft.AspNetCore.*`, `System.Web`, Dapper, Npgsql in **Domain** | Pure C# in Domain — no web, no persistence APIs |
+| Inject `IOrderRepository`, services, or `HttpClient` directly in **controllers** | Controller depends only on **`ISender`** |
+| Run migrations on **Api startup** or via `HostedService` | Separate **`MyApp.Migrator`** console app |
+| Use **Minimal API** (`MapGet`, `MapPost`, `IEndpointGroup`) | Classic **Controllers** + MediatR |
+| Use **ORM** (EF Core, etc.) or code-first migrations | **Dapper** + numbered `.sql` scripts |
+| Put **HTTP status codes** or `IActionResult` logic in handlers | Handlers return **`Result` + `Error`**; Api maps to HTTP |
+| Validate inside every handler manually | **`ValidationBehavior`** in MediatR pipeline |
+| **Mapping** entity → DTO inline in handlers (large blocks) | Extension methods or dedicated mappers in Application |
+| Log outbound HTTP via **DelegatingHandler** body buffering | **`ILoggingHttpClient`** decorator |
+| Put `docker-compose.yml` or `.http` in solution root | **`SolutionItems/`** + register in `.slnx` |
+| Use **User Secrets** | `appsettings` + environment variables |
+
+When in doubt, add or extend a **NetArchTest** rule: [architecture-tests.md](architecture-tests.md).

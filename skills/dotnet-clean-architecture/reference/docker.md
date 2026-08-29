@@ -1,3 +1,8 @@
+---
+description: Multistage Dockerfile and SolutionItems/docker-compose.yml. Use when containerizing Api, Migrator, or local dev stack.
+globs: "**/Dockerfile, **/SolutionItems/docker-compose*.yml, **/.dockerignore"
+---
+
 # Docker and docker-compose
 
 Every project includes multistage Dockerfiles for **Api** and **Migrator**, plus `SolutionItems/docker-compose.yml` with PostgreSQL.

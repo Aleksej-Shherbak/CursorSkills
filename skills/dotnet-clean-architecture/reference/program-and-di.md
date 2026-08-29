@@ -1,3 +1,8 @@
+---
+description: Minimal Program.cs, ConfigureServices, ConfigurePipeline, per-use-case DependencyInjection. Use when wiring DI or middleware.
+globs: "**/Program.cs, **/DependencyInjection.cs, **/Extensions/**"
+---
+
 # Program.cs and Dependency Injection
 
 `Program.cs` stays **minimal** — only bootstrap. All service registration and middleware configuration live in extension methods.

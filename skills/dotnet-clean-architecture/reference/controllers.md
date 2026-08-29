@@ -1,3 +1,8 @@
+---
+description: Classic ASP.NET Core controllers — ISender only, Result mapping. Use when creating or changing API endpoints.
+globs: "**/Controllers/**, **/Api/**"
+---
+
 # Classic Controllers
 
 ASP.NET Core MVC controllers — **not** Minimal API. Controllers depend **only on `ISender`** (MediatR).

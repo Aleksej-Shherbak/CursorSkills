@@ -1,3 +1,8 @@
+---
+description: MediatR handlers, pipeline behaviors, ValidationBehavior, ISender in controllers. Use when adding or changing use cases.
+globs: "**/Application/**, **/*Handler.cs, **/*Command.cs, **/*Query.cs, **/*Validator.cs"
+---
+
 # MediatR Setup
 
 MediatR 12.x for .NET 10 — handlers, pipeline behaviors, and controller dispatch via `ISender`.

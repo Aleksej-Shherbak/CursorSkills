@@ -1,3 +1,8 @@
+---
+description: Result, Error, ErrorKind quick reference. Use when returning failures from handlers or domain logic.
+globs: "**/Result.cs, **/Error*.cs, **/ErrorKind.cs"
+---
+
 # Result Pattern
 
 Structured `Result` with `Error` + `ErrorKind` in Domain. Api maps `ErrorKind` to HTTP status.

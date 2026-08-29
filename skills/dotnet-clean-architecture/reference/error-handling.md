@@ -1,3 +1,8 @@
+---
+description: Error, ErrorKind, Result, exception handlers, HTTP status mapping. Use when handling errors or mapping Result to IActionResult.
+globs: "**/Exceptions/**, **/Error*.cs, **/Result*.cs, **/*ExceptionHandler*.cs, **/ResultExtensions.cs"
+---
+
 # Error Handling
 
 Three channels for errors. Handlers return **`Result` with structured `Error`** — never HTTP status codes. Api maps `ErrorKind` → status code.

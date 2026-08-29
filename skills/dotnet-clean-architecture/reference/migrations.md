@@ -1,3 +1,8 @@
+---
+description: SQL migration scripts, DbUp, MyApp.Migrator console app. Use when changing schema or migration pipeline.
+globs: "**/Migrator/**, **/Persistence/Sql/**, **/*Migration*.cs"
+---
+
 # Database Migrations (SQL Scripts + Migrator)
 
 Migrations are **versioned SQL scripts** stored in Infrastructure. They are applied by a **separate console app** `MyApp.Migrator` — never by the Web API at startup.

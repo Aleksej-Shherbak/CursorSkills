@@ -1,3 +1,8 @@
+---
+description: Serilog JSONL logging — inbound, outbound, message types, W3C traceId. Use when adding middleware, HTTP client, or structured logs.
+globs: "**/Logging/**, **/*Middleware*.cs, **/*HttpClient*.cs, **/Serilog*.cs"
+---
+
 # Logging (Serilog, JSONL, W3C Trace)
 
 Structured logging with **Serilog** → **JSONL** (one JSON object per line). Three log types: **inbound**, **outbound**, **message**. All logs within one HTTP request share the same **W3C traceId**.

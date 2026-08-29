@@ -1,3 +1,8 @@
+---
+description: Solution structure, .slnx, SolutionItems, csproj references, use case folders. Use when scaffolding or reorganizing the solution.
+globs: "**/*.slnx, **/*.csproj, **/Directory.Build.props"
+---
+
 # Project Layout
 
 Standard 4-project Clean Architecture layout for .NET 10 with Controllers, Dapper, and PostgreSQL.
@@ -95,6 +100,7 @@ MyApp/
       appsettings.json
 
 tests/
+  MyApp.Architecture.Tests/   # NetArchTest.Rules — layer boundaries
   MyApp.Application.Tests/
   MyApp.Domain.Tests/
 ```
@@ -128,6 +134,7 @@ Auxiliary files that are **not** projects live in **`SolutionItems/`** on disk. 
   </Folder>
 
   <Folder Name="/tests/">
+    <Project Path="tests/MyApp.Architecture.Tests/MyApp.Architecture.Tests.csproj" />
     <Project Path="tests/MyApp.Domain.Tests/MyApp.Domain.Tests.csproj" />
     <Project Path="tests/MyApp.Application.Tests/MyApp.Application.Tests.csproj" />
   </Folder>
@@ -347,6 +354,7 @@ See [team-conventions.md](team-conventions.md) for version bump rules.
 - [migrations.md](migrations.md) — SQL scripts, Migrator, DbUp
 - [error-handling.md](error-handling.md) — Error, ErrorKind, exception handlers
 - [logging.md](logging.md) — Serilog JSONL, inbound/outbound/message, W3C traceId
+- [architecture-tests.md](architecture-tests.md) — NetArchTest.Rules layer tests
 - [program-and-di.md](program-and-di.md) — clean Program.cs, per-use-case DI
 - [mediatr-setup.md](mediatr-setup.md) — handlers, pipeline behaviors, ISender
 - [dapper-persistence.md](dapper-persistence.md) — repositories, SQL scripts

@@ -17,7 +17,8 @@ End-to-end scenarios for applying the dotnet-clean-architecture skill.
 7. Add Api: minimal `Program.cs`, extensions, `OrdersController(ISender)`.
 8. Add `SolutionItems/docker-compose.yml`: `postgres` → `migrator` → `api`.
 9. Add `SolutionItems/MyApp.Api.http` for manual API requests.
-10. No User Secrets. No `dotnet restore`.
+10. Add `MyApp.Architecture.Tests` with NetArchTest.Rules layer dependency tests.
+11. No User Secrets. No `dotnet restore`.
 
 **Expected structure:**
 
@@ -28,23 +29,25 @@ Orders/
 ├── SolutionItems/
 │   ├── docker-compose.yml
 │   └── Orders.Api.http
-└── src/
-    Orders.Infrastructure/
-      Persistence/Sql/0002_create_orders.sql
-    Orders.Migrator/
-      Program.cs
-      Dockerfile
-    Orders.Application/
-      Orders/CreateOrder/
-        CreateOrderCommand.cs
-        OrderItemDto.cs
-        CreateOrderHandler.cs
-        CreateOrderValidator.cs
-        DependencyInjection.cs
-    Orders.Api/
-      Program.cs
-      Extensions/WebApplicationBuilderExtensions.cs
-      Controllers/OrdersController.cs
+├── src/
+│   Orders.Infrastructure/
+│     Persistence/Sql/0002_create_orders.sql
+│   Orders.Migrator/
+│     Program.cs
+│     Dockerfile
+│   Orders.Application/
+│     Orders/CreateOrder/
+│       CreateOrderCommand.cs
+│       OrderItemDto.cs
+│       CreateOrderHandler.cs
+│       CreateOrderValidator.cs
+│       DependencyInjection.cs
+│   Orders.Api/
+│     Program.cs
+│     Extensions/WebApplicationBuilderExtensions.cs
+│     Controllers/OrdersController.cs
+└── tests/
+    Orders.Architecture.Tests/
 ```
 
 ## Example 2: Refactor Fat Controller to MediatR Handlers

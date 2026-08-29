@@ -1,3 +1,8 @@
+---
+description: Dapper repositories, connection factory, parameterized SQL, PostgreSQL. Use when creating or changing persistence layer.
+globs: "**/Infrastructure/Persistence/**, **/Infrastructure/**/Repositories/**, **/Application/**/Interfaces/**"
+---
+
 # Dapper Persistence (PostgreSQL)
 
 Data access via **Dapper** and **PostgreSQL** only.

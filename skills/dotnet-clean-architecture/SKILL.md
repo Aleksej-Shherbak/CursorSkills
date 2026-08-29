@@ -16,6 +16,26 @@ Apply this skill when building, refactoring, or reviewing .NET 10 backends with 
 
 **Always read** [team-conventions.md](reference/team-conventions.md) for mandatory stack rules and project-specific conventions.
 
+## Agent Mode — Reference Routing
+
+Reference files include **frontmatter** (`description`, `globs`) — pull the matching doc when editing files in that area:
+
+| When working on… | Read |
+|------------------|------|
+| Any task | [team-conventions.md](reference/team-conventions.md) |
+| Scaffolding / csproj / `.slnx` | [project-layout.md](reference/project-layout.md) |
+| Handlers, validators, MediatR | [mediatr-setup.md](reference/mediatr-setup.md) |
+| Repositories, SQL, Dapper | [dapper-persistence.md](reference/dapper-persistence.md) |
+| Controllers, endpoints | [controllers.md](reference/controllers.md) |
+| Errors, Result mapping | [error-handling.md](reference/error-handling.md) |
+| Logging, HttpClient | [logging.md](reference/logging.md) |
+| Program.cs, DI | [program-and-di.md](reference/program-and-di.md) |
+| Migrations, Migrator | [migrations.md](reference/migrations.md) |
+| Docker, compose | [docker.md](reference/docker.md) |
+| Architecture tests | [architecture-tests.md](reference/architecture-tests.md) |
+
+Full anti-pattern list: [team-conventions.md — DO NOT DO](reference/team-conventions.md#do-not-do-anti-patterns).
+
 ## Mandatory Stack
 
 | Area | Use | Never use |
@@ -250,7 +270,56 @@ Every new project: multistage `Dockerfile` in `src/`, `SolutionItems/docker-comp
 
 Templates: [docker.md](reference/docker.md)
 
-## Anti-patterns
+## Architecture Tests
+
+Bootstrap **`MyApp.Architecture.Tests`** with **NetArchTest.Rules** — enforce layer dependencies so violations fail CI (and agent can self-correct when user runs tests).
+
+Minimum rules: Domain → no Application/Infrastructure/AspNetCore; Application → no Infrastructure; repository interfaces in Application only.
+
+Full suite: [architecture-tests.md](reference/architecture-tests.md)
+
+## Anti-Patterns (DO NOT DO)
+
+See full table: [team-conventions.md](reference/team-conventions.md#do-not-do-anti-patterns).
+
+### Repository interface in Infrastructure
+
+```csharp
+// BAD — interface in Infrastructure
+namespace MyApp.Infrastructure.Persistence;
+public interface IOrderRepository { ... }
+
+// GOOD — interface in Application, implementation in Infrastructure
+namespace MyApp.Application.Common.Interfaces;
+public interface IOrderRepository { ... }
+```
+
+### AspNetCore or Dapper in Domain
+
+```csharp
+// BAD
+using Microsoft.AspNetCore.Http;
+using Dapper;
+
+namespace MyApp.Domain.Entities;
+
+// GOOD — pure C# only in Domain
+namespace MyApp.Domain.Entities;
+```
+
+### Mapping bloated inside handler
+
+```csharp
+// BAD — 30 lines of DTO mapping in Handle()
+public async Task<Result<OrderDto>> Handle(GetOrderQuery request, CancellationToken ct)
+{
+    var order = await repo.GetByIdAsync(request.Id, ct);
+    return new OrderDto { Id = order.Id, /* ... */ };
+}
+
+// GOOD — extension or static mapper in Application
+return order.ToDto();
+```
 
 ### Direct Service Injection in Controller
 
@@ -319,6 +388,7 @@ See [team-conventions.md](reference/team-conventions.md).
 - [ ] Api: Program.cs minimal; services in ConfigureServices, pipeline in ConfigurePipeline
 - [ ] Docker: multistage Dockerfile + docker-compose with PostgreSQL
 - [ ] No User Secrets; no dotnet restore
+- [ ] Architecture tests: MyApp.Architecture.Tests + NetArchTest layer rules
 - [ ] Bump VersionPrefix once at end if Directory.Build.props exists
 ```
 
@@ -336,7 +406,8 @@ End-to-end scenarios: [examples.md](examples.md)
 - [error-handling.md](reference/error-handling.md) — Error, ErrorKind, exception handlers, HTTP mapping
 - [logging.md](reference/logging.md) — Serilog JSONL, inbound/outbound/message, W3C traceId
 - [result-pattern.md](reference/result-pattern.md) — Result quick reference
-- [team-conventions.md](reference/team-conventions.md) — mandatory stack, DTO spacing, secrets
+- [architecture-tests.md](reference/architecture-tests.md) — NetArchTest.Rules layer dependency tests
+- [team-conventions.md](reference/team-conventions.md) — mandatory stack, DTO spacing, DO NOT DO anti-patterns
 
 ---
 
