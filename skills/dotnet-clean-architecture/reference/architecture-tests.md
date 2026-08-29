@@ -145,6 +145,19 @@ public sealed class LayerDependencyTests
         Assert.True(result.IsSuccessful, FormatFailures(result));
     }
 
+    [Fact]
+    public void Aggregate_roots_should_inherit_Entity_and_reside_in_Entities_namespace()
+    {
+        var result = Types.InAssembly(typeof(Domain.Common.Entity).Assembly)
+            .That()
+            .Inherit(typeof(Domain.Common.Entity))
+            .Should()
+            .ResideInNamespace($"{DomainNamespace}.Entities")
+            .GetResult();
+
+        Assert.True(result.IsSuccessful, FormatFailures(result));
+    }
+
     private static string FormatFailures(TestResult result) =>
         result.IsSuccessful
             ? string.Empty
@@ -184,4 +197,5 @@ public void Domain_entities_should_not_implement_IRequest()
 ## Related
 
 - Layer rules and anti-patterns: [team-conventions.md](team-conventions.md#do-not-do-anti-patterns)
+- Rich entities: [domain-entities.md](domain-entities.md)
 - Project layout: [project-layout.md](project-layout.md)

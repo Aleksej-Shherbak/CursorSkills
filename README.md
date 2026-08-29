@@ -9,6 +9,7 @@ Cursor Agent Skill for building .NET applications on **Clean Architecture** — 
 | Topic | Covered in |
 |-------|------------|
 | Clean Architecture (4 layers) | `SKILL.md`, `reference/project-layout.md` |
+| Rich domain entities | `reference/domain-entities.md` |
 | MediatR (handlers, pipeline behaviors) | `SKILL.md`, `reference/mediatr-setup.md` |
 | Classic Controllers + `ISender` | `reference/controllers.md` |
 | Dapper + PostgreSQL | `reference/dapper-persistence.md` |

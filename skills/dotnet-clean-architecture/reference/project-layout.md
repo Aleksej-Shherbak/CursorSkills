@@ -354,6 +354,7 @@ See [team-conventions.md](team-conventions.md) for version bump rules.
 - [migrations.md](migrations.md) — SQL scripts, Migrator, DbUp
 - [error-handling.md](error-handling.md) — Error, ErrorKind, exception handlers
 - [logging.md](logging.md) — Serilog JSONL, inbound/outbound/message, W3C traceId
+- [domain-entities.md](domain-entities.md) — rich model, invariants, encapsulation
 - [architecture-tests.md](architecture-tests.md) — NetArchTest.Rules layer tests
 - [program-and-di.md](program-and-di.md) — clean Program.cs, per-use-case DI
 - [mediatr-setup.md](mediatr-setup.md) — handlers, pipeline behaviors, ISender

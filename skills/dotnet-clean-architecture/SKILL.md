@@ -3,7 +3,7 @@ name: dotnet-clean-architecture
 description: >
   Enforces Clean Architecture for .NET 10: 4-project layout (Domain, Application,
   Infrastructure, Api), dependency inversion, MediatR handlers with pipeline
-  behaviors, behavior-rich entities, Dapper + PostgreSQL persistence, classic
+  behavior-rich domain entities with invariants and encapsulation, Dapper + PostgreSQL persistence, classic
   ASP.NET Core controllers, multistage Dockerfile and docker-compose. Use when
   scaffolding, refactoring, or reviewing .NET backends, layered architecture,
   CQRS, MediatR, Dapper, PostgreSQL, Docker, or Clean Architecture.
@@ -25,6 +25,7 @@ Reference files include **frontmatter** (`description`, `globs`) — pull the ma
 | Any task | [team-conventions.md](reference/team-conventions.md) |
 | Scaffolding / csproj / `.slnx` | [project-layout.md](reference/project-layout.md) |
 | Handlers, validators, MediatR | [mediatr-setup.md](reference/mediatr-setup.md) |
+| Domain entities, invariants, rich model | [domain-entities.md](reference/domain-entities.md) |
 | Repositories, SQL, Dapper | [dapper-persistence.md](reference/dapper-persistence.md) |
 | Controllers, endpoints | [controllers.md](reference/controllers.md) |
 | Errors, Result mapping | [error-handling.md](reference/error-handling.md) |
@@ -50,7 +51,7 @@ Full anti-pattern list: [team-conventions.md — DO NOT DO](reference/team-conve
 ## Core Principles
 
 1. **Dependency inversion is the foundation** — All dependencies point inward. Domain has zero project references. Application references only Domain. Infrastructure references Application and Domain. Api references all but depends on abstractions.
-2. **Domain owns the rules** — Business logic lives in the Domain layer as entity methods, domain services, or specifications. Pure C# only — no Dapper, no HTTP, no database APIs.
+2. **Domain owns the rules** — Entities are **rich models**: state + behavior, invariants enforced inside the entity, state changes only through methods (small state machines). Never anemic `{ get; set; }` DTOs. Pure C# only — no Dapper, no HTTP, no database APIs.
 3. **Use cases are the unit of work** — Each use case is a MediatR handler in Application. MediatR resolves the handler by request type. Cross-cutting concerns (validation, logging, transactions) go into pipeline behaviors.
 4. **Infrastructure is a plugin** — Dapper repositories, Npgsql, external APIs — all live in Infrastructure and implement interfaces from Application.
 5. **The API layer is thin** — Controllers depend only on `ISender`. `Program.cs` stays minimal; configuration lives in extension methods.
@@ -183,14 +184,25 @@ Never use `HostedService` or Api startup to run migrations.
 
 Full guide: [migrations.md](reference/migrations.md)
 
-## Domain Entity with Behavior
+## Domain Entity — Rich Model
+
+Entities are **rich models**, not anemic DTOs. State and behavior live together; invalid transitions are rejected inside the entity. Think of each aggregate as a **small state machine** — only valid transitions via explicit methods.
+
+Full guide: [domain-entities.md](reference/domain-entities.md)
 
 ```csharp
-public class Order : Entity
+public sealed class Order : Entity
 {
     private readonly List<OrderItem> _items = [];
 
-    public static Order Create(string customerId, IEnumerable<OrderItem> items, DateTimeOffset now) { /* ... */ }
+    public OrderStatus Status { get; private set; }
+
+    public IReadOnlyCollection<OrderItem> Items => _items.AsReadOnly();
+
+    public static Order Create(string customerId, IEnumerable<OrderItem> items, DateTimeOffset now)
+    {
+        // invariants at birth — non-empty customer, items, valid total
+    }
 
     public Result Cancel()
     {
@@ -198,11 +210,14 @@ public class Order : Entity
             return Result.Failure(Error.Unprocessable(
                 "ORDER_NOT_PENDING",
                 "Only pending orders can be cancelled"));
+
         Status = OrderStatus.Cancelled;
         return Result.Success();
     }
 }
 ```
+
+**Never** `order.Status = …` in handlers. **Always** `order.Cancel()` (or equivalent domain method).
 
 ## Error Handling
 
@@ -282,6 +297,25 @@ Full suite: [architecture-tests.md](reference/architecture-tests.md)
 
 See full table: [team-conventions.md](reference/team-conventions.md#do-not-do-anti-patterns).
 
+### Anemic entity with public setters
+
+```csharp
+// BAD — anyone can corrupt state
+public class Order
+{
+    public OrderStatus Status { get; set; }
+}
+
+// handler bypasses domain rules
+order.Status = OrderStatus.Cancelled;
+
+// GOOD — rich model, transition via method
+public OrderStatus Status { get; private set; }
+var result = order.Cancel();
+```
+
+See [domain-entities.md](reference/domain-entities.md).
+
 ### Repository interface in Infrastructure
 
 ```csharp
@@ -353,6 +387,7 @@ See [team-conventions.md](reference/team-conventions.md).
 | Scenario | Recommendation |
 |----------|---------------|
 | Use case implementation | MediatR Command/Query + Handler + Validator |
+| Domain entity | Rich model — `private set`, methods return `Result`, no public state mutation |
 | Cross-cutting concerns | `IPipelineBehavior<,>` (validation, logging, transactions) |
 | Command persistence | `IOrderRepository` with Dapper in Infrastructure |
 | Read-only query | Handler with `IDbConnectionFactory` + Dapper |
@@ -373,7 +408,8 @@ See [team-conventions.md](reference/team-conventions.md).
 
 ```
 - [ ] Domain: Error, ErrorKind, Result types
-- [ ] Domain: entity behavior returning Result.Failure(Error(...))
+- [ ] Domain: rich entities — private setters, Create/Restore, behavior methods returning Result
+- [ ] Domain: no public mutation of entity state from handlers
 - [ ] Application: use case folder (models + Handler + Validator + DependencyInjection.cs)
 - [ ] Application: register use case in root DependencyInjection.cs (Add{UseCase}())
 - [ ] Application: ValidationBehavior in MediatR pipeline
@@ -400,6 +436,7 @@ End-to-end scenarios: [examples.md](examples.md)
 - [program-and-di.md](reference/program-and-di.md) — clean Program.cs, per-use-case DI
 - [mediatr-setup.md](reference/mediatr-setup.md) — handlers, pipeline behaviors, ISender
 - [project-layout.md](reference/project-layout.md) — solution structure and csproj
+- [domain-entities.md](reference/domain-entities.md) — rich model, invariants, state machines
 - [dapper-persistence.md](reference/dapper-persistence.md) — Dapper, repositories, SQL
 - [controllers.md](reference/controllers.md) — ApiController + ISender
 - [docker.md](reference/docker.md) — Dockerfile, docker-compose

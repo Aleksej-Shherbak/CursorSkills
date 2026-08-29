@@ -113,6 +113,8 @@ Hard rules — violating these breaks Clean Architecture. See code examples in [
 | ❌ Never | ✅ Instead |
 |----------|-----------|
 | Put repository **interfaces** in Infrastructure | Define `IOrderRepository` in **Application**; implement in Infrastructure |
+| **Anemic entities** with public `{ get; set; }` on state | **Rich model** — `private set`, state changes via methods returning `Result` |
+| Mutate entity state in handlers (`order.Status = …`) | Call domain methods (`order.Cancel()`) — entity validates invariants |
 | Reference `Microsoft.AspNetCore.*`, `System.Web`, Dapper, Npgsql in **Domain** | Pure C# in Domain — no web, no persistence APIs |
 | Inject `IOrderRepository`, services, or `HttpClient` directly in **controllers** | Controller depends only on **`ISender`** |
 | Run migrations on **Api startup** or via `HostedService` | Separate **`MyApp.Migrator`** console app |
@@ -125,4 +127,4 @@ Hard rules — violating these breaks Clean Architecture. See code examples in [
 | Put `docker-compose.yml` or `.http` in solution root | **`SolutionItems/`** + register in `.slnx` |
 | Use **User Secrets** | `appsettings` + environment variables |
 
-When in doubt, add or extend a **NetArchTest** rule: [architecture-tests.md](architecture-tests.md).
+When in doubt, add or extend a **NetArchTest** rule: [architecture-tests.md](architecture-tests.md). Entity rules: [domain-entities.md](domain-entities.md).

@@ -9,7 +9,7 @@ End-to-end scenarios for applying the dotnet-clean-architecture skill.
 **Agent steps:**
 
 1. Create solution with 4 projects: `Orders.Domain`, `Orders.Application`, `Orders.Infrastructure`, `Orders.Api`.
-2. Add Domain: `Entity`, `Result`, `Order`, `OrderItem`, `OrderStatus`.
+2. Add Domain: `Entity`, `Result`, `Order` (rich model — `private set`, `Create`, behavior methods), `OrderItem`, `OrderStatus`.
 3. Add Application use case folders (`CreateOrder/` with models, Handler, Validator, `DependencyInjection.cs`).
 4. Wire use cases in root `Application/DependencyInjection.cs` via `AddCreateOrder()`, etc.
 5. Add Infrastructure: Dapper repositories, SQL scripts in `Persistence/Sql/`.
@@ -155,3 +155,29 @@ See [docker.md](reference/docker.md) and [migrations.md](reference/migrations.md
 4. `ResultExtensions` maps `ErrorKind.Unprocessable` → 422 automatically.
 
 Do **not** add status code logic to handler or controller.
+
+## Example 8: Refactor Anemic Entity to Rich Model
+
+**User prompt:** "Order entity has public setters — refactor to rich domain model."
+
+**Before (anti-pattern):**
+
+```csharp
+public class Order : Entity
+{
+    public string CustomerId { get; set; } = null!;
+    public OrderStatus Status { get; set; }
+    public decimal Total { get; set; }
+}
+
+// CancelOrderHandler — business rule in wrong layer
+order.Status = OrderStatus.Cancelled;
+```
+
+**After (target):**
+
+1. **Domain** — `private set`, `Create`/`Restore`, `Cancel()` returns `Result`.
+2. **Handler** — load → `order.Cancel()` → persist; never assign `Status`.
+3. **Repository** — map rows via `Order.Restore(...)`, persist after valid transitions.
+
+Full guide: [domain-entities.md](reference/domain-entities.md)

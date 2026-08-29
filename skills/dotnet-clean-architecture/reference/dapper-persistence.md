@@ -190,6 +190,8 @@ internal sealed class OrderRepository(IDbConnectionFactory connectionFactory) : 
 
 Domain entity needs a `Restore` factory for rehydration from DB (separate from `Create`):
 
+See [domain-entities.md](domain-entities.md) for rich model rules (`private set`, behavior methods, invariants).
+
 ```csharp
 public static Order Restore(
     Guid id, string customerId, OrderStatus status, decimal total,
